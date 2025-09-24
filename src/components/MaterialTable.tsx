@@ -52,6 +52,7 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
   const [replaceWithCode, setReplaceWithCode] = useState<string>("");
   const [materialComments, setMaterialComments] = useState<Record<string, string>>({});
   const [newComments, setNewComments] = useState<Record<string, string>>({});
+  const [showAllComments, setShowAllComments] = useState<Record<string, boolean>>({});
   
   // Nombres aleatorios para comentarios
   const RANDOM_AUTHORS = [
@@ -173,6 +174,13 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
     setNewComments(prev => ({
       ...prev,
       [materialId]: ""
+    }));
+  };
+
+  const toggleShowAllComments = (materialId: string) => {
+    setShowAllComments(prev => ({
+      ...prev,
+      [materialId]: !prev[materialId]
     }));
   };
 
@@ -399,15 +407,38 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
                       
                       {/* Histórico de comentarios */}
                       <div className="space-y-3">
-                        {(material.comments && material.comments.length > 0 ? material.comments : generateRandomComments(material.id)).map((comment) => (
-                          <div key={comment.id} className="bg-secondary/50 p-3 rounded-lg text-xs">
-                            <div className="flex justify-between items-start mb-1">
-                              <span className="font-medium text-construction-dark">{comment.author}</span>
-                              <span className="text-muted-foreground text-xs">{formatDate(comment.timestamp)}</span>
-                            </div>
-                            <p className="text-foreground">{comment.text}</p>
-                          </div>
-                        ))}
+                        {(() => {
+                          const allComments = material.comments && material.comments.length > 0 
+                            ? [...material.comments].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+                            : generateRandomComments(material.id).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+                          
+                          const shouldShowAll = showAllComments[material.id];
+                          const commentsToShow = shouldShowAll ? allComments : allComments.slice(0, 3);
+                          const hasMoreComments = allComments.length > 3;
+
+                          return (
+                            <>
+                              {commentsToShow.map((comment) => (
+                                <div key={comment.id} className="bg-secondary/50 p-3 rounded-lg text-xs">
+                                  <div className="flex justify-between items-start mb-1">
+                                    <span className="font-medium text-construction-dark">{comment.author}</span>
+                                    <span className="text-muted-foreground text-xs">{formatDate(comment.timestamp)}</span>
+                                  </div>
+                                  <p className="text-foreground">{comment.text}</p>
+                                </div>
+                              ))}
+                              
+                              {hasMoreComments && (
+                                <button
+                                  onClick={() => toggleShowAllComments(material.id)}
+                                  className="text-xs text-primary hover:text-primary-dark font-medium underline"
+                                >
+                                  {shouldShowAll ? `Ver menos` : `Ver ${allComments.length - 3} comentarios más`}
+                                </button>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
 
                       {/* Agregar nuevo comentario */}
