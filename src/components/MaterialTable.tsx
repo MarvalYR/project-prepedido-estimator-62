@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, MessageCircle } from "lucide-react";
 
 interface Material {
   id: string;
@@ -14,6 +16,7 @@ interface Material {
   unitPrice: number;
   orderQuantity: number;
   status: "pendiente" | "aprobado" | "en_aprobacion";
+  comments?: string;
 }
 
 interface MaterialTableProps {
@@ -40,6 +43,7 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
   const [selectedMaterialCode, setSelectedMaterialCode] = useState<string>("");
   const [replacingMaterial, setReplacingMaterial] = useState<string | null>(null);
   const [replaceWithCode, setReplaceWithCode] = useState<string>("");
+  const [materialComments, setMaterialComments] = useState<Record<string, string>>({});
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -95,6 +99,13 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
     onReplaceMaterial(materialId, replacementMaterial);
     setReplacingMaterial(null);
     setReplaceWithCode("");
+  };
+
+  const handleCommentChange = (materialId: string, comment: string) => {
+    setMaterialComments(prev => ({
+      ...prev,
+      [materialId]: comment
+    }));
   };
 
   return (
@@ -176,6 +187,9 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
             </th>
             <th className="text-left p-3 text-xs font-semibold text-construction-dark uppercase tracking-wider border-b-2 border-construction-gray">
               Acciones
+            </th>
+            <th className="text-left p-3 text-xs font-semibold text-construction-dark uppercase tracking-wider border-b-2 border-construction-gray">
+              Comentarios
             </th>
           </tr>
         </thead>
@@ -285,6 +299,41 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
                     )}
                   </div>
                 )}
+              </td>
+              <td className="p-3">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="p-2 border-construction-gray hover:bg-secondary"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-80 bg-background border shadow-lg" 
+                    side="right"
+                    align="start"
+                  >
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Comentarios - {material.code}</h4>
+                      <Textarea
+                        placeholder="Escribe un comentario..."
+                        value={materialComments[material.id] || material.comments || ""}
+                        onChange={(e) => handleCommentChange(material.id, e.target.value)}
+                        rows={3}
+                        className="text-sm border-construction-gray focus:border-primary"
+                      />
+                      <Button
+                        size="sm"
+                        className="w-full bg-gradient-primary hover:shadow-construction transition-smooth"
+                      >
+                        Guardar Comentario
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </td>
             </tr>
           ))}
