@@ -4,6 +4,13 @@ import FilterSection from "@/components/FilterSection";
 import LevelSection from "@/components/LevelSection";
 import SummaryBar from "@/components/SummaryBar";
 
+interface Comment {
+  id: string;
+  author: string;
+  text: string;
+  timestamp: Date;
+}
+
 interface Material {
   id: string;
   code: string;
@@ -13,6 +20,7 @@ interface Material {
   unitPrice: number;
   orderQuantity: number;
   status: "pendiente" | "aprobado" | "en_aprobacion";
+  comments: Comment[];
 }
 
 interface Family {
@@ -61,6 +69,7 @@ const mockData = {
                   unitPrice: 35000,
                   orderQuantity: 450,
                   status: "aprobado" as const,
+                  comments: [],
                 },
                 {
                   id: "MAT-003",
@@ -71,6 +80,7 @@ const mockData = {
                   unitPrice: 85000,
                   orderQuantity: 45,
                   status: "en_aprobacion" as const,
+                  comments: [],
                 },
               ],
             },
@@ -87,6 +97,7 @@ const mockData = {
                   unitPrice: 18500,
                   orderQuantity: 180,
                   status: "pendiente" as const,
+                  comments: [],
                 },
               ],
             },
@@ -110,6 +121,7 @@ const mockData = {
                   unitPrice: 12500,
                   orderQuantity: 280,
                   status: "en_aprobacion" as const,
+                  comments: [],
                 },
               ],
             },
@@ -140,6 +152,7 @@ const mockData = {
                   unitPrice: 2500,
                   orderQuantity: 750,
                   status: "aprobado" as const,
+                  comments: [],
                 },
               ],
             },

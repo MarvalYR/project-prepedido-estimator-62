@@ -3,6 +3,13 @@ import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import MaterialTable from "./MaterialTable";
 
+interface Comment {
+  id: string;
+  author: string;
+  text: string;
+  timestamp: Date;
+}
+
 interface Material {
   id: string;
   code: string;
@@ -12,6 +19,7 @@ interface Material {
   unitPrice: number;
   orderQuantity: number;
   status: "pendiente" | "aprobado" | "en_aprobacion";
+  comments: Comment[];
 }
 
 interface Family {

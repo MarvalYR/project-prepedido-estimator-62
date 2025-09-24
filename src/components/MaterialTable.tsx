@@ -7,6 +7,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, MessageCircle } from "lucide-react";
 
+interface Comment {
+  id: string;
+  author: string;
+  text: string;
+  timestamp: Date;
+}
+
 interface Material {
   id: string;
   code: string;
@@ -16,7 +23,7 @@ interface Material {
   unitPrice: number;
   orderQuantity: number;
   status: "pendiente" | "aprobado" | "en_aprobacion";
-  comments?: string;
+  comments: Comment[];
 }
 
 interface MaterialTableProps {
@@ -44,6 +51,46 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
   const [replacingMaterial, setReplacingMaterial] = useState<string | null>(null);
   const [replaceWithCode, setReplaceWithCode] = useState<string>("");
   const [materialComments, setMaterialComments] = useState<Record<string, string>>({});
+  const [newComments, setNewComments] = useState<Record<string, string>>({});
+  
+  // Nombres aleatorios para comentarios
+  const RANDOM_AUTHORS = [
+    "María González", "Carlos López", "Ana Rodríguez", "José Martínez", 
+    "Laura Pérez", "Miguel Sánchez", "Carmen Torres", "Francisco Ruiz"
+  ];
+
+  // Comentarios aleatorios
+  const RANDOM_COMMENTS = [
+    "Material verificado y aprobado para pedido",
+    "Revisar disponibilidad con proveedor principal",
+    "Precio actualizado según cotización reciente",
+    "Considerar material alternativo por tiempo de entrega",
+    "Cantidad ajustada según especificaciones técnicas",
+    "Pendiente aprobación de ingeniero residente",
+    "Material de buena calidad, recomendado",
+    "Verificar compatibilidad con otros materiales"
+  ];
+
+  // Generar comentarios aleatorios para materiales
+  const generateRandomComments = (materialId: string): Comment[] => {
+    const numComments = Math.floor(Math.random() * 3); // 0-2 comentarios aleatorios
+    const comments: Comment[] = [];
+    
+    for (let i = 0; i < numComments; i++) {
+      const randomAuthor = RANDOM_AUTHORS[Math.floor(Math.random() * RANDOM_AUTHORS.length)];
+      const randomComment = RANDOM_COMMENTS[Math.floor(Math.random() * RANDOM_COMMENTS.length)];
+      const randomDate = new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)); // Últimos 7 días
+      
+      comments.push({
+        id: `${materialId}-comment-${i}`,
+        author: randomAuthor,
+        text: randomComment,
+        timestamp: randomDate
+      });
+    }
+    
+    return comments;
+  };
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -70,6 +117,7 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
       unitPrice: selectedMaterial.unitPrice,
       orderQuantity: 0,
       status: "pendiente" as const,
+      comments: [],
     };
 
     onAddMaterial(newMaterial);
@@ -94,6 +142,7 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
       unitPrice: selectedMaterial.unitPrice,
       orderQuantity: currentMaterial.orderQuantity,
       status: "pendiente" as const,
+      comments: currentMaterial.comments || [],
     };
 
     onReplaceMaterial(materialId, replacementMaterial);
@@ -102,10 +151,39 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
   };
 
   const handleCommentChange = (materialId: string, comment: string) => {
-    setMaterialComments(prev => ({
+    setNewComments(prev => ({
       ...prev,
       [materialId]: comment
     }));
+  };
+
+  const handleAddComment = (materialId: string) => {
+    const commentText = newComments[materialId];
+    if (!commentText?.trim()) return;
+
+    const newComment: Comment = {
+      id: `${materialId}-comment-${Date.now()}`,
+      author: "Usuario Actual", // Esto podría venir de la sesión del usuario
+      text: commentText.trim(),
+      timestamp: new Date()
+    };
+
+    // Aquí normalmente actualizarías el estado del material en el componente padre
+    // Por ahora solo limpiamos el comentario temporal
+    setNewComments(prev => ({
+      ...prev,
+      [materialId]: ""
+    }));
+  };
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('es-CO', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
   };
 
   return (
@@ -312,25 +390,45 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent 
-                    className="w-80 bg-background border shadow-lg" 
+                    className="w-96 bg-background border shadow-lg" 
                     side="right"
                     align="start"
                   >
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Comentarios - {material.code}</h4>
-                      <Textarea
-                        placeholder="Escribe un comentario..."
-                        value={materialComments[material.id] || material.comments || ""}
-                        onChange={(e) => handleCommentChange(material.id, e.target.value)}
-                        rows={3}
-                        className="text-sm border-construction-gray focus:border-primary"
-                      />
-                      <Button
-                        size="sm"
-                        className="w-full bg-gradient-primary hover:shadow-construction transition-smooth"
-                      >
-                        Guardar Comentario
-                      </Button>
+                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                      <h4 className="font-medium text-sm border-b pb-2">Comentarios - {material.code}</h4>
+                      
+                      {/* Histórico de comentarios */}
+                      <div className="space-y-3">
+                        {(material.comments.length > 0 ? material.comments : generateRandomComments(material.id)).map((comment) => (
+                          <div key={comment.id} className="bg-secondary/50 p-3 rounded-lg text-xs">
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="font-medium text-construction-dark">{comment.author}</span>
+                              <span className="text-muted-foreground text-xs">{formatDate(comment.timestamp)}</span>
+                            </div>
+                            <p className="text-foreground">{comment.text}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Agregar nuevo comentario */}
+                      <div className="border-t pt-3 space-y-2">
+                        <label className="text-xs font-medium text-construction-dark">Agregar comentario:</label>
+                        <Textarea
+                          placeholder="Escribe un comentario..."
+                          value={newComments[material.id] || ""}
+                          onChange={(e) => handleCommentChange(material.id, e.target.value)}
+                          rows={3}
+                          className="text-sm border-construction-gray focus:border-primary"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={() => handleAddComment(material.id)}
+                          disabled={!newComments[material.id]?.trim()}
+                          className="w-full bg-gradient-primary hover:shadow-construction transition-smooth"
+                        >
+                          Guardar Comentario
+                        </Button>
+                      </div>
                     </div>
                   </PopoverContent>
                 </Popover>
