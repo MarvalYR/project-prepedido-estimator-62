@@ -287,7 +287,7 @@ const Index = () => {
       <div className="bg-gradient-construction text-primary-foreground p-6 shadow-construction">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold tracking-tight">
-            📋 Prepedido - Estimación de Materiales
+            📋 Prepedido
           </h1>
         </div>
       </div>
