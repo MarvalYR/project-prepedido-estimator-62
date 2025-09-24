@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import MaterialTable from "./MaterialTable";
+import FamilySection from "./FamilySection";
 
 interface Material {
   id: string;
@@ -14,11 +14,17 @@ interface Material {
   status: "pendiente" | "aprobado" | "en_aprobacion";
 }
 
+interface Family {
+  id: string;
+  name: string;
+  materials: Material[];
+}
+
 interface Sublevel {
   id: string;
   name: string;
   level: number;
-  materials: Material[];
+  families: Family[];
 }
 
 interface LevelSectionProps {
@@ -27,10 +33,10 @@ interface LevelSectionProps {
   level: number;
   sublevels: Sublevel[];
   apartmentCount: number;
-  onMaterialQuantityChange: (sublevelId: string, materialId: string, quantity: number) => void;
+  onMaterialQuantityChange: (sublevelId: string, familyId: string, materialId: string, quantity: number) => void;
   onAddToOrder: (materialId: string) => void;
-  onAddMaterial?: (sublevelId: string, material: Omit<Material, 'id'>) => void;
-  onReplaceMaterial?: (sublevelId: string, materialId: string, newMaterial: Omit<Material, 'id'>) => void;
+  onAddMaterial?: (sublevelId: string, familyId: string, material: Omit<Material, 'id'>) => void;
+  onReplaceMaterial?: (sublevelId: string, familyId: string, materialId: string, newMaterial: Omit<Material, 'id'>) => void;
 }
 
 const LevelSection = ({
@@ -59,16 +65,20 @@ const LevelSection = ({
 
   const calculateLevelTotal = () => {
     return sublevels.reduce((total, sublevel) => {
-      return total + sublevel.materials.reduce((sublevelTotal, material) => {
-        return sublevelTotal + (material.unitPrice * material.orderQuantity);
+      return total + sublevel.families.reduce((familyTotal, family) => {
+        return familyTotal + family.materials.reduce((materialTotal, material) => {
+          return materialTotal + (material.unitPrice * material.orderQuantity);
+        }, 0);
       }, 0);
     }, 0);
   };
 
   const calculateLevelBudgetTotal = () => {
     return sublevels.reduce((total, sublevel) => {
-      return total + sublevel.materials.reduce((sublevelTotal, material) => {
-        return sublevelTotal + (material.unitPrice * material.budgetQuantity);
+      return total + sublevel.families.reduce((familyTotal, family) => {
+        return familyTotal + family.materials.reduce((materialTotal, material) => {
+          return materialTotal + (material.unitPrice * material.budgetQuantity);
+        }, 0);
       }, 0);
     }, 0);
   };
@@ -148,11 +158,15 @@ const LevelSection = ({
       {isExpanded && (
         <div className="p-4 bg-gradient-subtle space-y-4 animate-in slide-in-from-top-2 duration-300">
           {sublevels.map((sublevel) => {
-            const sublevelTotal = sublevel.materials.reduce((total, material) => {
-              return total + (material.unitPrice * material.orderQuantity);
+            const sublevelTotal = sublevel.families.reduce((total, family) => {
+              return total + family.materials.reduce((materialTotal, material) => {
+                return materialTotal + (material.unitPrice * material.orderQuantity);
+              }, 0);
             }, 0);
-            const sublevelBudgetTotal = sublevel.materials.reduce((total, material) => {
-              return total + (material.unitPrice * material.budgetQuantity);
+            const sublevelBudgetTotal = sublevel.families.reduce((total, family) => {
+              return total + family.materials.reduce((materialTotal, material) => {
+                return materialTotal + (material.unitPrice * material.budgetQuantity);
+              }, 0);
             }, 0);
             const sublevelPerApt = apartmentCount > 0 ? sublevelTotal / apartmentCount : 0;
             const sublevelBudgetPerApt = apartmentCount > 0 ? sublevelBudgetTotal / apartmentCount : 0;
@@ -207,16 +221,19 @@ const LevelSection = ({
                 </div>
 
                 {isSubExpanded && (
-                  <div className="p-4 bg-background animate-in slide-in-from-top-2 duration-200">
-                    <MaterialTable
-                      materials={sublevel.materials}
-                      onQuantityChange={(materialId, quantity) =>
-                        onMaterialQuantityChange(sublevel.id, materialId, quantity)
-                      }
-                      onAddToOrder={onAddToOrder}
-                      onAddMaterial={onAddMaterial ? (material) => onAddMaterial(sublevel.id, material) : undefined}
-                      onReplaceMaterial={onReplaceMaterial ? (materialId, newMaterial) => onReplaceMaterial(sublevel.id, materialId, newMaterial) : undefined}
-                    />
+                  <div className="p-4 bg-background space-y-3 animate-in slide-in-from-top-2 duration-200">
+                    {sublevel.families.map((family) => (
+                      <FamilySection
+                        key={family.id}
+                        family={family}
+                        sublevelId={sublevel.id}
+                        apartmentCount={apartmentCount}
+                        onMaterialQuantityChange={onMaterialQuantityChange}
+                        onAddToOrder={onAddToOrder}
+                        onAddMaterial={onAddMaterial}
+                        onReplaceMaterial={onReplaceMaterial}
+                      />
+                    ))}
                   </div>
                 )}
               </div>

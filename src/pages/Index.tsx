@@ -15,6 +15,26 @@ interface Material {
   status: "pendiente" | "aprobado" | "en_aprobacion";
 }
 
+interface Family {
+  id: string;
+  name: string;
+  materials: Material[];
+}
+
+interface Sublevel {
+  id: string;
+  name: string;
+  level: number;
+  families: Family[];
+}
+
+interface Level {
+  id: string;
+  name: string;
+  level: number;
+  sublevels: Sublevel[];
+}
+
 // Mock data structure
 const mockData = {
   levels: [
@@ -27,36 +47,48 @@ const mockData = {
           id: "nivel8-1",
           name: "Columnas y Vigas",
           level: 8,
-          materials: [
+          families: [
             {
-              id: "MAT-001",
-              code: "MAT-001",
-              name: "Cemento Portland Tipo I",
-              unit: "Sacos",
-              budgetQuantity: 500,
-              unitPrice: 35000,
-              orderQuantity: 450,
-              status: "aprobado" as const,
+              id: "familia-1",
+              name: "Concretos",
+              materials: [
+                {
+                  id: "MAT-001",
+                  code: "MAT-001",
+                  name: "Cemento Portland Tipo I",
+                  unit: "Sacos",
+                  budgetQuantity: 500,
+                  unitPrice: 35000,
+                  orderQuantity: 450,
+                  status: "aprobado" as const,
+                },
+                {
+                  id: "MAT-003",
+                  code: "MAT-003",
+                  name: "Arena Gruesa",
+                  unit: "m³",
+                  budgetQuantity: 50,
+                  unitPrice: 85000,
+                  orderQuantity: 45,
+                  status: "en_aprobacion" as const,
+                },
+              ],
             },
             {
-              id: "MAT-002",
-              code: "MAT-002",
-              name: "Varilla Corrugada 1/2\"",
-              unit: "Unidades",
-              budgetQuantity: 200,
-              unitPrice: 18500,
-              orderQuantity: 180,
-              status: "pendiente" as const,
-            },
-            {
-              id: "MAT-003",
-              code: "MAT-003",
-              name: "Arena Gruesa",
-              unit: "m³",
-              budgetQuantity: 50,
-              unitPrice: 85000,
-              orderQuantity: 45,
-              status: "en_aprobacion" as const,
+              id: "familia-2",
+              name: "Acero de Refuerzo",
+              materials: [
+                {
+                  id: "MAT-002",
+                  code: "MAT-002",
+                  name: "Varilla Corrugada 1/2\"",
+                  unit: "Unidades",
+                  budgetQuantity: 200,
+                  unitPrice: 18500,
+                  orderQuantity: 180,
+                  status: "pendiente" as const,
+                },
+              ],
             },
           ],
         },
@@ -64,16 +96,22 @@ const mockData = {
           id: "nivel8-2",
           name: "Losas y Entrepisos",
           level: 8,
-          materials: [
+          families: [
             {
-              id: "MAT-004",
-              code: "MAT-004",
-              name: "Malla Electrosoldada 6x6",
-              unit: "m²",
-              budgetQuantity: 300,
-              unitPrice: 12500,
-              orderQuantity: 280,
-              status: "en_aprobacion" as const,
+              id: "familia-3",
+              name: "Mallas y Refuerzos",
+              materials: [
+                {
+                  id: "MAT-004",
+                  code: "MAT-004",
+                  name: "Malla Electrosoldada 6x6",
+                  unit: "m²",
+                  budgetQuantity: 300,
+                  unitPrice: 12500,
+                  orderQuantity: 280,
+                  status: "en_aprobacion" as const,
+                },
+              ],
             },
           ],
         },
@@ -88,16 +126,22 @@ const mockData = {
           id: "nivel8-3",
           name: "Muros y Divisiones",
           level: 8,
-          materials: [
+          families: [
             {
-              id: "MAT-005",
-              code: "MAT-005",
-              name: "Bloque de Concreto 15x20x40",
-              unit: "Unidades",
-              budgetQuantity: 800,
-              unitPrice: 2500,
-              orderQuantity: 750,
-              status: "aprobado" as const,
+              id: "familia-4",
+              name: "Mampostería",
+              materials: [
+                {
+                  id: "MAT-005",
+                  code: "MAT-005",
+                  name: "Bloque de Concreto 15x20x40",
+                  unit: "Unidades",
+                  budgetQuantity: 800,
+                  unitPrice: 2500,
+                  orderQuantity: 750,
+                  status: "aprobado" as const,
+                },
+              ],
             },
           ],
         },
@@ -110,7 +154,7 @@ const Index = () => {
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedWork, setSelectedWork] = useState("");
   const [selectedActivity, setSelectedActivity] = useState("");
-  const [levels, setLevels] = useState(mockData.levels);
+  const [levels, setLevels] = useState<Level[]>(mockData.levels);
   const [showContent, setShowContent] = useState(false);
 
   const apartmentCount = 80;
@@ -123,7 +167,7 @@ const Index = () => {
     }
   }, [selectedProject, selectedWork, selectedActivity]);
 
-  const handleMaterialQuantityChange = (sublevelId: string, materialId: string, quantity: number) => {
+  const handleMaterialQuantityChange = (sublevelId: string, familyId: string, materialId: string, quantity: number) => {
     setLevels(prevLevels =>
       prevLevels.map(level => ({
         ...level,
@@ -131,10 +175,17 @@ const Index = () => {
           sublevel.id === sublevelId
             ? {
                 ...sublevel,
-                materials: sublevel.materials.map(material =>
-                  material.id === materialId
-                    ? { ...material, orderQuantity: quantity }
-                    : material
+                families: sublevel.families.map(family =>
+                  family.id === familyId
+                    ? {
+                        ...family,
+                        materials: family.materials.map(material =>
+                          material.id === materialId
+                            ? { ...material, orderQuantity: quantity }
+                            : material
+                        ),
+                      }
+                    : family
                 ),
               }
             : sublevel
@@ -143,7 +194,7 @@ const Index = () => {
     );
   };
 
-  const handleAddMaterial = (sublevelId: string, newMaterial: Omit<Material, 'id'>) => {
+  const handleAddMaterial = (sublevelId: string, familyId: string, newMaterial: Omit<Material, 'id'>) => {
     const materialId = `MAT-${Date.now()}`;
     setLevels(prevLevels =>
       prevLevels.map(level => ({
@@ -152,7 +203,14 @@ const Index = () => {
           sublevel.id === sublevelId
             ? {
                 ...sublevel,
-                materials: [...sublevel.materials, { ...newMaterial, id: materialId }],
+                families: sublevel.families.map(family =>
+                  family.id === familyId
+                    ? {
+                        ...family,
+                        materials: [...family.materials, { ...newMaterial, id: materialId }],
+                      }
+                    : family
+                ),
               }
             : sublevel
         ),
@@ -163,7 +221,7 @@ const Index = () => {
     });
   };
 
-  const handleReplaceMaterial = (sublevelId: string, materialId: string, newMaterial: Omit<Material, 'id'>) => {
+  const handleReplaceMaterial = (sublevelId: string, familyId: string, materialId: string, newMaterial: Omit<Material, 'id'>) => {
     setLevels(prevLevels =>
       prevLevels.map(level => ({
         ...level,
@@ -171,10 +229,17 @@ const Index = () => {
           sublevel.id === sublevelId
             ? {
                 ...sublevel,
-                materials: sublevel.materials.map(material =>
-                  material.id === materialId
-                    ? { ...newMaterial, id: materialId }
-                    : material
+                families: sublevel.families.map(family =>
+                  family.id === familyId
+                    ? {
+                        ...family,
+                        materials: family.materials.map(material =>
+                          material.id === materialId
+                            ? { ...newMaterial, id: materialId }
+                            : material
+                        ),
+                      }
+                    : family
                 ),
               }
             : sublevel
@@ -199,10 +264,12 @@ const Index = () => {
 
     levels.forEach(level => {
       level.sublevels.forEach(sublevel => {
-        sublevel.materials.forEach(material => {
-          totalMaterials += material.orderQuantity;
-          totalValue += material.unitPrice * material.orderQuantity;
-          budgetTotalValue += material.unitPrice * material.budgetQuantity;
+        sublevel.families.forEach(family => {
+          family.materials.forEach(material => {
+            totalMaterials += material.orderQuantity;
+            totalValue += material.unitPrice * material.orderQuantity;
+            budgetTotalValue += material.unitPrice * material.budgetQuantity;
+          });
         });
       });
     });
