@@ -399,7 +399,7 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
                       
                       {/* Histórico de comentarios */}
                       <div className="space-y-3">
-                        {(material.comments.length > 0 ? material.comments : generateRandomComments(material.id)).map((comment) => (
+                        {(material.comments && material.comments.length > 0 ? material.comments : generateRandomComments(material.id)).map((comment) => (
                           <div key={comment.id} className="bg-secondary/50 p-3 rounded-lg text-xs">
                             <div className="flex justify-between items-start mb-1">
                               <span className="font-medium text-construction-dark">{comment.author}</span>
