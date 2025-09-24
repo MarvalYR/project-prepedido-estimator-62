@@ -185,34 +185,34 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
               key={material.id} 
               className="hover:bg-gradient-subtle transition-smooth border-b border-construction-gray/50"
             >
-              <td className="p-3 font-medium text-foreground">
+              <td className="p-3 font-medium text-foreground text-sm">
                 <span className="bg-secondary px-2 py-1 rounded text-xs font-mono text-construction-dark mr-2">
                   {material.code}
                 </span>
                 - {material.name}
               </td>
-              <td className="p-3">
+              <td className="p-3 text-sm">
                 <Badge variant="secondary" className="text-xs">
                   {material.unit}
                 </Badge>
               </td>
-              <td className="p-3 text-right font-medium">
+              <td className="p-3 text-right font-medium text-sm">
                 {material.budgetQuantity.toLocaleString()}
               </td>
-              <td className="p-3 text-right font-medium">
+              <td className="p-3 text-right font-medium text-sm">
                 {formatCurrency(material.unitPrice)}
               </td>
-              <td className="p-3 text-right">
+              <td className="p-3 text-right text-sm">
                 <Input
                   type="number"
                   value={material.orderQuantity}
                   onChange={(e) => onQuantityChange(material.id, parseInt(e.target.value) || 0)}
                   min={0}
                   max={material.budgetQuantity}
-                  className="w-20 text-center border-construction-gray focus:border-primary"
+                  className="w-20 text-center text-sm border-construction-gray focus:border-primary"
                 />
               </td>
-              <td className="p-3 text-right font-semibold text-primary">
+              <td className="p-3 text-right font-semibold text-primary text-sm">
                 {formatCurrency(calculateTotal(material))}
               </td>
               <td className="p-3">
