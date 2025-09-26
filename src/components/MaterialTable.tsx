@@ -257,13 +257,13 @@ const MaterialTable = ({ materials, onQuantityChange, onAddToOrder, onAddMateria
               Unidad
             </th>
             <th className="text-right p-3 text-xs font-semibold text-construction-dark uppercase tracking-wider border-b-2 border-construction-gray">
-              Cant. Presup.
+              Cant. presup.
             </th>
             <th className="text-right p-3 text-xs font-semibold text-construction-dark uppercase tracking-wider border-b-2 border-construction-gray">
-              Valor Unit.
+              Valor unit.
             </th>
             <th className="text-right p-3 text-xs font-semibold text-construction-dark uppercase tracking-wider border-b-2 border-construction-gray">
-              Cant. a Pedir
+              Cant. a pedir
             </th>
             <th className="text-right p-3 text-xs font-semibold text-construction-dark uppercase tracking-wider border-b-2 border-construction-gray">
               Total
